@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { SidebarComponent } from './shared/components/sidebar/sidebar.component';
 
 @Component({
@@ -12,6 +12,13 @@ import { SidebarComponent } from './shared/components/sidebar/sidebar.component'
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
-  title = 'angular-new';
- 
+  title = 'Code Lab';
+   isRootRoute: boolean = false;
+  constructor(private router: Router) {
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        this.isRootRoute = this.router.url === '/';
+      }
+    });
+  }
 }
