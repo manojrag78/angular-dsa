@@ -1,0 +1,47 @@
+/* Tree visualization styles */
+svg {
+  background-color: #f8fafc;
+  min-height: 600px;
+  overflow: auto;
+}
+
+/* Node colors */
+.fill-gray-300 {
+  fill: #d1d5db;
+}
+
+.fill-blue-500 {
+  fill: #3b82f6;
+}
+
+.fill-green-500 {
+  fill: #10b981;
+}
+
+.fill-yellow-500 {
+  fill: #f59e0b;
+}
+
+.fill-red-500 {
+  fill: #ef4444;
+}
+
+/* Edge colors */
+.stroke-gray-300 {
+  stroke: #d1d5db;
+}
+
+.stroke-blue-500 {
+  stroke: #3b82f6;
+}
+
+.stroke-green-500 {
+  stroke: #10b981;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  svg {
+    min-height: 300px;
+  }
+}

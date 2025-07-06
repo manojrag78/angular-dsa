@@ -1,0 +1,250 @@
+<div class="min-h-screen bg-gray-50 py-12 px-4">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-gray-800 mb-2">Dynamic Programming Visualizer</h1>
+      <p class="text-gray-600">Visualize Fibonacci sequence calculation with different approaches</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-md overflow-hidden p-6 mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Fibonacci(n)</label>
+          <input 
+            type="number" 
+            [(ngModel)]="nValue"
+            min="0" 
+            max="15" 
+            class="w-full px-3 py-2 border border-gray-300 rounded-md"
+            [disabled]="isVisualizing"
+          >
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Animation Speed</label>
+          <input 
+            type="range" 
+            [(ngModel)]="animationSpeed"
+            min="100" 
+            max="1000" 
+            class="w-full cursor-pointer"
+            [disabled]="isVisualizing"
+          >
+          <span class="text-sm text-gray-600">{{animationSpeed}}ms delay</span>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Approach</label>
+          <select 
+            [(ngModel)]="selectedApproach" 
+            class="w-full px-3 py-2 border border-gray-300 rounded-md cursor-pointer"
+            [disabled]="isVisualizing"
+          >
+            <option value="recursive">Recursive</option>
+            <option value="memoization">Memoization</option>
+            <option value="tabulation">Tabulation</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <button
+          (click)="startVisualization()"
+          class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition cursor-pointer"
+          [disabled]="isVisualizing || nValue === null || nValue < 0"
+        >
+          Calculate
+        </button>
+        <button
+          (click)="pauseVisualization()"
+          class="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded transition cursor-pointer"
+          [disabled]="!isVisualizing || isPaused"
+        >
+          Pause
+        </button>
+        <button
+          (click)="resumeVisualization()"
+          class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded transition cursor-pointer"
+          [disabled]="!isPaused"
+        >
+          Resume
+        </button>
+        <button
+          (click)="resetVisualization()"
+          class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded transition cursor-pointer"
+        >
+          Reset
+        </button>
+      </div>
+
+      <div class="mb-6 p-4 bg-blue-50 rounded-md">
+        <h3 class="font-semibold text-blue-800 mb-2">Current Operation</h3>
+        <p class="text-sm text-blue-700">{{operationText}}</p>
+        <div class="mt-2 flex flex-wrap gap-2">
+          <span 
+            *ngIf="callStack.length > 0"
+            class="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full"
+          >
+            Call Stack: {{callStack.join(' → ')}}
+          </span>
+          <span 
+            *ngIf="currentFunctionCall"
+            class="text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full"
+          >
+            Calculating: fib({{currentFunctionCall}})
+          </span>
+          <span 
+            *ngIf="memoizedValues.size > 0 && selectedApproach === 'memoization'"
+            class="text-xs px-2 py-1 bg-purple-100 text-purple-800 rounded-full"
+          >
+            Memo: {{objectToArray(memoizedValues)}}
+          </span>
+          <span 
+            *ngIf="dpTable.length > 0 && selectedApproach === 'tabulation'"
+            class="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full"
+          >
+            DP Table: [{{dpTable.join(', ')}}]
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Visualization Area -->
+    <div class="bg-white rounded-xl shadow-md overflow-hidden p-6 mb-8 min-h-96">
+      <!-- Recursive Tree Visualization -->
+      <div *ngIf="selectedApproach === 'recursive' || selectedApproach === 'memoization'" class="relative">
+        <div #recursiveTreeContainer class="overflow-x-auto py-8">
+          <div class="flex flex-col items-center" style="min-width: 100%">
+            <div *ngFor="let level of recursiveTree" class="flex justify-center space-x-8 mb-8">
+              <div 
+                *ngFor="let node of level" 
+                class="w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-300"
+                [class.border-blue-500]="node.state === 'active'"
+                [class.border-green-500]="node.state === 'completed'"
+                [class.border-gray-300]="node.state === 'default'"
+                [class.border-purple-500]="node.state === 'memoized'"
+                [class.bg-blue-100]="node.state === 'active'"
+                [class.bg-green-100]="node.state === 'completed'"
+                [class.bg-gray-100]="node.state === 'default'"
+                [class.bg-purple-100]="node.state === 'memoized'"
+              >
+                <span class="font-bold" [class.text-blue-700]="node.state === 'active'"
+                  [class.text-green-700]="node.state === 'completed'"
+                  [class.text-gray-700]="node.state === 'default'"
+                  [class.text-purple-700]="node.state === 'memoized'">
+                  fib({{node.value}})
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div *ngIf="recursiveTree.length === 0" class="absolute inset-0 flex items-center justify-center text-gray-400">
+          Calculation tree will appear here
+        </div>
+      </div>
+
+      <!-- Tabulation Visualization -->
+      <div *ngIf="selectedApproach === 'tabulation'" class="relative">
+        <div class="overflow-x-auto">
+          <div class="flex space-x-4 mb-4">
+            <div *ngFor="let item of dpTable; let i = index" 
+              class="w-16 h-16 rounded-lg flex flex-col items-center justify-center border-2 transition-all duration-300"
+              [class.border-blue-500]="i === currentTabulationStep"
+              [class.border-gray-300]="i !== currentTabulationStep"
+              [class.bg-blue-100]="i === currentTabulationStep"
+              [class.bg-gray-100]="i !== currentTabulationStep"
+            >
+              <span class="text-xs text-gray-500">fib({{i}})</span>
+              <span class="font-bold">{{item !== null ? item : '?'}}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div *ngIf="dpTable.length === 0" class="absolute inset-0 flex items-center justify-center text-gray-400">
+          DP table will appear here
+        </div>
+      </div>
+    </div>
+
+    <!-- Approach Explanations -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="bg-white rounded-xl shadow-md overflow-hidden p-6">
+        <h3 class="font-semibold text-blue-800 mb-3">Recursive Approach</h3>
+        <ul class="space-y-2 text-sm text-gray-700">
+          <li class="flex items-start">
+            <span class="text-blue-500 mr-2">•</span>
+            <span><strong>Time Complexity:</strong> O(2^n) - Exponential</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-blue-500 mr-2">•</span>
+            <span><strong>Space Complexity:</strong> O(n) - Call stack depth</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-blue-500 mr-2">•</span>
+            <span><strong>Pros:</strong> Simple implementation, intuitive</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-blue-500 mr-2">•</span>
+            <span><strong>Cons:</strong> Recomputes same values repeatedly</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-blue-500 mr-2">•</span>
+            <span><strong>Base Cases:</strong> fib(0) = 0, fib(1) = 1</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-md overflow-hidden p-6">
+        <h3 class="font-semibold text-purple-800 mb-3">Memoization Approach</h3>
+        <ul class="space-y-2 text-sm text-gray-700">
+          <li class="flex items-start">
+            <span class="text-purple-500 mr-2">•</span>
+            <span><strong>Time Complexity:</strong> O(n) - Linear</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-purple-500 mr-2">•</span>
+            <span><strong>Space Complexity:</strong> O(n) - Call stack + memo table</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-purple-500 mr-2">•</span>
+            <span><strong>Pros:</strong> Avoids recomputation, top-down approach</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-purple-500 mr-2">•</span>
+            <span><strong>Cons:</strong> Still uses recursion (stack overflow risk)</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-purple-500 mr-2">•</span>
+            <span><strong>Memoization:</strong> Cache results of expensive function calls</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-md overflow-hidden p-6">
+        <h3 class="font-semibold text-green-800 mb-3">Tabulation Approach</h3>
+        <ul class="space-y-2 text-sm text-gray-700">
+          <li class="flex items-start">
+            <span class="text-green-500 mr-2">•</span>
+            <span><strong>Time Complexity:</strong> O(n) - Linear</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-green-500 mr-2">•</span>
+            <span><strong>Space Complexity:</strong> O(n) - DP table (can be optimized to O(1))</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-green-500 mr-2">•</span>
+            <span><strong>Pros:</strong> No recursion, bottom-up approach</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-green-500 mr-2">•</span>
+            <span><strong>Cons:</strong> May compute unnecessary subproblems</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-green-500 mr-2">•</span>
+            <span><strong>Tabulation:</strong> Builds table iteratively from base cases</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

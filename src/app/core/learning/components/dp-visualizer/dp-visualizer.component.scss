@@ -1,0 +1,74 @@
+/* Tree visualization styles */
+.recursive-tree {
+  min-height: 300px;
+}
+
+/* Node styling */
+.node {
+  transition: all 0.3s ease;
+}
+
+/* DP table styling */
+.dp-table {
+  display: flex;
+  overflow-x: auto;
+  gap: 0.5rem;
+  padding-bottom: 1rem;
+}
+
+.dp-cell {
+  min-width: 4rem;
+  height: 4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+/* Color classes */
+.bg-blue-100 {
+  background-color: #dbeafe;
+}
+
+.bg-green-100 {
+  background-color: #d1fae5;
+}
+
+.bg-purple-100 {
+  background-color: #ede9fe;
+}
+
+.border-blue-500 {
+  border-color: #3b82f6;
+}
+
+.border-green-500 {
+  border-color: #10b981;
+}
+
+.border-purple-500 {
+  border-color: #8b5cf6;
+}
+
+.text-blue-700 {
+  color: #1d4ed8;
+}
+
+.text-green-700 {
+  color: #047857;
+}
+
+.text-purple-700 {
+  color: #6d28d9;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .dp-cell {
+    min-width: 3rem;
+    height: 3rem;
+    font-size: 0.875rem;
+  }
+}

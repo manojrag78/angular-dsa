@@ -1,0 +1,86 @@
+/* Heap visualization styles */
+.heap-container {
+  min-height: 400px;
+  background-color: #f8fafc;
+  border-radius: 0.5rem;
+  position: relative;
+}
+
+/* Node styling */
+.node {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-width: 3px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+/* Edge/connection styling */
+.stroke-gray-300 {
+  stroke: #d1d5db;
+}
+
+.stroke-blue-500 {
+  stroke: #3b82f6;
+  stroke-width: 3px;
+}
+
+.stroke-green-500 {
+  stroke: #10b981;
+  stroke-width: 3px;
+}
+
+/* Color classes */
+.bg-blue-100 {
+  background-color: #dbeafe;
+}
+
+.bg-green-100 {
+  background-color: #d1fae5;
+}
+
+.bg-red-100 {
+  background-color: #fee2e2;
+}
+
+.bg-yellow-100 {
+  background-color: #fef3c7;
+}
+
+.border-blue-500 {
+  border-color: #3b82f6;
+}
+
+.border-green-500 {
+  border-color: #10b981;
+}
+
+.border-red-500 {
+  border-color: #ef4444;
+}
+
+.border-yellow-500 {
+  border-color: #f59e0b;
+}
+
+/* Array representation styles */
+.array-container {
+  min-height: 100px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .heap-container {
+    min-height: 300px;
+  }
+  
+  .node {
+    width: 3rem;
+    height: 3rem;
+    font-size: 0.875rem;
+  }
+}

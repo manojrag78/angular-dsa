@@ -1,0 +1,69 @@
+<div class="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-md" @stepAnimation>
+  <h1 class="text-3xl font-bold text-gray-800 mb-6">Node.js Server Creation Steps</h1>
+  
+  <div class="space-y-8">
+    <!-- Step 1 -->
+    <div *ngIf="steps[0].show" class="flex items-start step">
+      <div class="flex-shrink-0 bg-blue-500 rounded-full h-8 w-8 flex items-center justify-center text-white font-bold mr-4">1</div>
+      <div>
+        <h2 class="text-xl font-semibold text-gray-700">{{steps[0].title}}</h2>
+        <div class="mt-2 bg-gray-100 p-4 rounded-md font-mono text-sm" @typingAnimation>
+          <span class="text-blue-600">npm</span> init -y
+        </div>
+      </div>
+    </div>
+    
+    <!-- Step 2 -->
+    <div *ngIf="steps[1].show" class="flex items-start step">
+      <div class="flex-shrink-0 bg-blue-500 rounded-full h-8 w-8 flex items-center justify-center text-white font-bold mr-4">2</div>
+      <div>
+        <h2 class="text-xl font-semibold text-gray-700">{{steps[1].title}}</h2>
+        <div class="mt-2 bg-gray-100 p-4 rounded-md font-mono text-sm" @typingAnimation>
+          <span class="text-blue-600">npm</span> install express
+        </div>
+      </div>
+    </div>
+    
+    <!-- Step 3 -->
+    <!-- <div *ngIf="steps[2].show" class="flex items-start step">
+      <div class="flex-shrink-0 bg-blue-500 rounded-full h-8 w-8 flex items-center justify-center text-white font-bold mr-4">3</div>
+      <div>
+        <h2 class="text-xl font-semibold text-gray-700">{{steps[2].title}}</h2>
+        <div class="mt-2 bg-gray-100 p-4 rounded-md font-mono text-sm overflow-x-auto" @typingAnimation>
+          <span class="text-purple-600">const</span> express = <span class="text-blue-600">require</span>(<span class="text-green-600">'express'</span>);<br>
+          <span class="text-purple-600">const</span> app = <span class="text-blue-600">express</span>();<br><br>
+          
+          app.<span class="text-blue-600">get</span>(<span class="text-green-600">'/'</span>, (req, res) => {{ '{' }}<br>
+          &nbsp;&nbsp;res.<span class="text-blue-600">send</span>(<span class="text-green-600">'Hello World!'</span>);<br>
+          {{ '}' }});<br><br>
+          
+          <span class="text-purple-600">const</span> PORT = process.env.PORT || <span class="text-red-600">3000</span>;<br>
+          app.<span class="text-blue-600">listen</span>(PORT, () => {{ '{' }}<br>
+          &nbsp;&nbsp;console.<span class="text-blue-600">log</span>(<span class="text-green-600">`Server running on port ${PORT}`</span>);<br>
+          {{ '}' }});
+        </div>
+      </div>
+    </div> -->
+    <!-- In template -->
+<div *ngIf="steps[2].show" class="flex items-start step">
+<pre class="mt-2 bg-gray-100 p-4 rounded-md font-mono text-sm overflow-x-auto" @typingAnimation>
+  {{step3Code}}
+</pre>
+</div>     
+
+    <!-- Step 4 -->
+    <div *ngIf="steps[3].show" class="flex items-start step">
+      <div class="flex-shrink-0 bg-blue-500 rounded-full h-8 w-8 flex items-center justify-center text-white font-bold mr-4">4</div>
+      <div>
+        <h2 class="text-xl font-semibold text-gray-700">{{steps[3].title}}</h2>
+        <div class="mt-2 bg-gray-100 p-4 rounded-md font-mono text-sm" @typingAnimation>
+          <span class="text-blue-600">node</span> server.js
+        </div>
+        <p *ngIf="steps[3].note" class="mt-2 text-gray-600">{{steps[3].note}}</p>
+        <div *ngIf="steps[3].noteCode" class="mt-1 bg-gray-100 p-4 rounded-md font-mono text-sm" @typingAnimation>
+          <span class="text-blue-600">npx</span> nodemon server.js
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

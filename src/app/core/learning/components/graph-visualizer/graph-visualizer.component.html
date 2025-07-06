@@ -1,0 +1,205 @@
+<div class="min-h-screen bg-gray-50 py-12 px-4">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-gray-800 mb-2">Graph Traversal Visualizer</h1>
+      <p class="text-gray-600">Visualize Breadth-First Search (BFS) and Depth-First Search (DFS)</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-md overflow-hidden p-6 mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Number of Nodes</label>
+          <input 
+            type="range" 
+            [(ngModel)]="nodeCount"
+            min="3" 
+            max="10" 
+            class="w-full cursor-pointer"
+            [disabled]="isVisualizing"
+            (change)="generateGraph()"
+          >
+          <span class="text-sm text-gray-600">{{nodeCount}} nodes</span>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Animation Speed</label>
+          <input 
+            type="range" 
+            [(ngModel)]="animationSpeed"
+            min="100" 
+            max="1000" 
+            class="w-full cursor-pointer"
+            [disabled]="isVisualizing"
+          >
+          <span class="text-sm text-gray-600">{{animationSpeed}}ms delay</span>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Algorithm</label>
+          <select 
+            [(ngModel)]="selectedAlgorithm" 
+            class="w-full px-3 py-2 border border-gray-300 rounded-md cursor-pointer"
+            [disabled]="isVisualizing"
+          >
+            <option value="bfs">Breadth-First Search (BFS)</option>
+            <option value="dfs">Depth-First Search (DFS)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <button
+          (click)="generateGraph()"
+          class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded transition cursor-pointer"
+          [disabled]="isVisualizing"
+        >
+          Generate Graph
+        </button>
+        <button
+          (click)="startVisualization()"
+          class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition cursor-pointer"
+          [disabled]="isVisualizing || !graph.nodes.length"
+        >
+          Start Visualization
+        </button>
+        <button
+          (click)="pauseVisualization()"
+          class="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded transition cursor-pointer"
+          [disabled]="!isVisualizing || isPaused"
+        >
+          Pause
+        </button>
+        <button
+          (click)="resumeVisualization()"
+          class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded transition cursor-pointer"
+          [disabled]="!isPaused"
+        >
+          Resume
+        </button>
+      </div>
+
+      <div class="mb-6 p-4 bg-blue-50 rounded-md">
+        <h3 class="font-semibold text-blue-800 mb-2">Current Operation</h3>
+        <p class="text-sm text-blue-700">{{operationText}}</p>
+        <div class="mt-2 flex flex-wrap gap-2">
+          <span 
+            *ngIf="visitedNodes.length > 0"
+            class="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full"
+          >
+            Visited: {{visitedNodes.join(', ')}}
+          </span>
+          <span 
+            *ngIf="queue.length > 0 && selectedAlgorithm === 'bfs'"
+            class="text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full"
+          >
+            Queue: [{{queue.join(', ')}}]
+          </span>
+          <span 
+            *ngIf="stack.length > 0 && selectedAlgorithm === 'dfs'"
+            class="text-xs px-2 py-1 bg-purple-100 text-purple-800 rounded-full"
+          >
+            Stack: [{{stack.join(', ')}}]
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Graph Visualization -->
+    <div class="relative bg-white rounded-xl shadow-md overflow-hidden p-6 h-96 mb-8">
+      <svg #graphSvg class="w-full h-full border border-gray-200 rounded-lg">
+        <!-- Edges -->
+        <path
+          *ngFor="let edge of graph.edges"
+          [attr.d]="edge.path"
+          [class.stroke-gray-300]="edge.state === 'default'"
+          [class.stroke-blue-500]="edge.state === 'active'"
+          [class.stroke-green-500]="edge.state === 'visited'"
+          class="fill-none stroke-2"
+        />
+
+        <!-- Nodes -->
+        <g *ngFor="let node of graph.nodes" (click)="setStartNode(node.id)">
+          <circle
+            [attr.cx]="node.x"
+            [attr.cy]="node.y"
+            r="20"
+            [class.fill-gray-300]="node.state === 'default'"
+            [class.fill-blue-500]="node.state === 'active'"
+            [class.fill-green-500]="node.state === 'visited'"
+            [class.fill-yellow-500]="node.state === 'start'"
+            [class.fill-red-500]="node.state === 'processing'"
+            class="stroke-white stroke-2 cursor-pointer transition-colors duration-300"
+          />
+          <text
+            [attr.x]="node.x"
+            [attr.y]="node.y"
+            class="text-white font-bold text-center pointer-events-none"
+            dominant-baseline="middle"
+            text-anchor="middle"
+          >
+            {{node.id}}
+          </text>
+        </g>
+      </svg>
+
+      <div *ngIf="graph.nodes.length === 0" class="absolute inset-0 flex items-center justify-center text-gray-400">
+        Click "Generate Graph" to create a graph
+      </div>
+    </div>
+
+    <!-- Algorithm Explanation -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div class="bg-white rounded-xl shadow-md overflow-hidden p-6">
+        <h3 class="font-semibold text-blue-800 mb-3">Breadth-First Search (BFS)</h3>
+        <ul class="space-y-2 text-sm text-gray-700">
+          <li class="flex items-start">
+            <span class="text-blue-500 mr-2">•</span>
+            <span><strong>Queue-based</strong> - Uses a queue to track nodes to visit</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-blue-500 mr-2">•</span>
+            <span><strong>Level-order</strong> - Visits all neighbors before moving to next level</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-blue-500 mr-2">•</span>
+            <span><strong>Time Complexity:</strong> O(V + E) where V is vertices and E is edges</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-blue-500 mr-2">•</span>
+            <span><strong>Space Complexity:</strong> O(V)</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-blue-500 mr-2">•</span>
+            <span><strong>Applications:</strong> Shortest path in unweighted graphs, social networks, web crawling</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-md overflow-hidden p-6">
+        <h3 class="font-semibold text-purple-800 mb-3">Depth-First Search (DFS)</h3>
+        <ul class="space-y-2 text-sm text-gray-700">
+          <li class="flex items-start">
+            <span class="text-purple-500 mr-2">•</span>
+            <span><strong>Stack-based</strong> - Uses recursion or explicit stack</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-purple-500 mr-2">•</span>
+            <span><strong>Depth-first</strong> - Explores as far as possible along each branch</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-purple-500 mr-2">•</span>
+            <span><strong>Time Complexity:</strong> O(V + E) where V is vertices and E is edges</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-purple-500 mr-2">•</span>
+            <span><strong>Space Complexity:</strong> O(V)</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-purple-500 mr-2">•</span>
+            <span><strong>Applications:</strong> Maze solving, topological sorting, cycle detection</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,53 @@
+<div class="max-w-2xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+  <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-6">Sudoku Solver</h1>
+
+  <div class="grid grid-cols-1 gap-6">
+    <!-- Sudoku Grid -->
+    <div class="bg-gray-100 dark:bg-gray-900 p-4 rounded-lg flex justify-center">
+      <canvas #canvas class="border border-gray-300 dark:border-gray-600"></canvas>
+    </div>
+
+    <!-- Controls -->
+    <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Speed</label>
+          <input type="range" min="1" max="200" [(ngModel)]="visualizationSpeed"
+                 class="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer">
+          <span class="text-xs text-gray-600 dark:text-gray-400">{{visualizationSpeed}}ms/step</span>
+        </div>
+
+        <div class="space-x-2 flex items-end">
+          <button (click)="solveSudoku()" [disabled]="isVisualizing"
+                  class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50">
+            {{isVisualizing ? 'Solving...' : 'Solve'}}
+          </button>
+          <button (click)="resetSudoku()" [disabled]="isVisualizing"
+                  class="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors disabled:opacity-50">
+            Reset
+          </button>
+          <button (click)="pauseSolving()" *ngIf="isVisualizing"
+                  class="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors">
+            {{isPaused ? 'Resume' : 'Pause'}}
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600 grid grid-cols-3 gap-2">
+        <div>
+          <span class="block text-sm font-medium text-gray-700 dark:text-gray-300">Steps</span>
+          <span class="text-sm font-mono text-gray-600 dark:text-gray-400">{{currentStep}}</span>
+        </div>
+        <div>
+          <span class="block text-sm font-medium text-gray-700 dark:text-gray-300">Backtracks</span>
+          <span class="text-sm font-mono text-gray-600 dark:text-gray-400">{{backtrackCount}}</span>
+        </div>
+        <div>
+          <span class="block text-sm font-medium text-gray-700 dark:text-gray-300">Time</span>
+          <span class="text-sm font-mono text-gray-600 dark:text-gray-400">{{executionTime.toFixed(0)}}ms</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

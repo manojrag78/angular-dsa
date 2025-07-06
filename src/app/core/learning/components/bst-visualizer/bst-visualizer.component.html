@@ -1,0 +1,192 @@
+<div class="min-h-screen bg-gray-50 py-12 px-4">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-gray-800 mb-2">Binary Search Tree Visualizer</h1>
+      <p class="text-gray-600">Visualize BST operations with animations</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-md overflow-hidden p-6 mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Animation Speed</label>
+          <input 
+            type="range" 
+            [(ngModel)]="animationSpeed"
+            min="100" 
+            max="1000" 
+            class="w-full cursor-pointer"
+            [disabled]="isWorking"
+          >
+          <span class="text-sm text-gray-600">{{animationSpeed}}ms delay</span>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Operation</label>
+          <select 
+            [(ngModel)]="selectedOperation" 
+            class="w-full px-3 py-2 border border-gray-300 rounded-md cursor-pointer"
+            [disabled]="isWorking"
+          >
+            <option value="insert">Insert</option>
+            <option value="delete">Delete</option>
+            <option value="search">Search</option>
+            <option value="inorder">In-order Traversal</option>
+            <option value="preorder">Pre-order Traversal</option>
+            <option value="postorder">Post-order Traversal</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Value</label>
+          <input 
+            type="number" 
+            [(ngModel)]="operationValue"
+            placeholder="Enter value"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md"
+            [disabled]="isWorking || selectedOperation === 'inorder' || selectedOperation === 'preorder' || selectedOperation === 'postorder'"
+          >
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <button
+          (click)="performOperation()"
+          class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition cursor-pointer"
+          [disabled]="isWorking || (!operationValue && selectedOperation !== 'inorder' && selectedOperation !== 'preorder' && selectedOperation !== 'postorder')"
+        >
+          Execute
+        </button>
+        <button
+          (click)="generateRandomTree()"
+          class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded transition cursor-pointer"
+          [disabled]="isWorking"
+        >
+          Random Tree
+        </button>
+        <button
+          (click)="pauseOperation()"
+          class="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded transition cursor-pointer"
+          [disabled]="!isWorking || isPaused"
+        >
+          Pause
+        </button>
+        <button
+          (click)="resumeOperation()"
+          class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded transition cursor-pointer"
+          [disabled]="!isPaused"
+        >
+          Resume
+        </button>
+      </div>
+
+      <div class="mb-6 p-4 bg-blue-50 rounded-md">
+        <h3 class="font-semibold text-blue-800 mb-2">Current Operation</h3>
+        <p class="text-sm text-blue-700">{{operationText}}</p>
+        <div class="mt-2 flex flex-wrap gap-2">
+          <span 
+            *ngIf="visitedNodes.length > 0"
+            class="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full"
+          >
+            Visited: {{visitedNodes.join(', ')}}
+          </span>
+          <span 
+            *ngIf="currentPath.length > 0"
+            class="text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full"
+          >
+            Path: {{currentPath.join(' → ')}}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- BST Visualization -->
+    <div class="relative bg-white rounded-xl shadow-md overflow-hidden p-6 h-96 mb-8">
+      <svg #treeSvg class="w-full h-full">
+        <!-- Edges -->
+        <path
+          *ngFor="let edge of edges"
+          [attr.d]="edge.path"
+          [class.stroke-gray-300]="edge.state === 'default'"
+          [class.stroke-blue-500]="edge.state === 'active'"
+          [class.stroke-green-500]="edge.state === 'visited'"
+          class="fill-none stroke-2"
+        />
+
+        <!-- Nodes -->
+        <g *ngFor="let node of nodes" (click)="setSelectedNode(node.value)">
+          <circle
+            [attr.cx]="node.x"
+            [attr.cy]="node.y"
+            r="20"
+            [class.fill-gray-300]="node.state === 'default'"
+            [class.fill-blue-500]="node.state === 'active'"
+            [class.fill-green-500]="node.state === 'visited'"
+            [class.fill-yellow-500]="node.state === 'selected'"
+            [class.fill-red-500]="node.state === 'processing'"
+            class="stroke-white stroke-2 cursor-pointer transition-colors duration-300"
+          />
+          <text
+            [attr.x]="node.x"
+            [attr.y]="node.y"
+            class="text-white font-bold text-center pointer-events-none"
+            dominant-baseline="middle"
+            text-anchor="middle"
+          >
+            {{node.value}}
+          </text>
+        </g>
+      </svg>
+
+      <div *ngIf="nodes.length === 0" class="absolute inset-0 flex items-center justify-center text-gray-400">
+        Click "Random Tree" or insert values to build a tree
+      </div>
+    </div>
+
+    <!-- BST Explanation -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div class="bg-white rounded-xl shadow-md overflow-hidden p-6">
+        <h3 class="font-semibold text-blue-800 mb-3">Binary Search Tree Properties</h3>
+        <ul class="space-y-2 text-sm text-gray-700">
+          <li class="flex items-start">
+            <span class="text-blue-500 mr-2">•</span>
+            <span><strong>Ordering:</strong> Left subtree contains only nodes with values less than the parent node</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-blue-500 mr-2">•</span>
+            <span><strong>Structure:</strong> Right subtree contains only nodes with values greater than the parent node</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-blue-500 mr-2">•</span>
+            <span><strong>Operations:</strong> Average case O(log n) time complexity for search, insert, delete</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-blue-500 mr-2">•</span>
+            <span><strong>Balanced BST:</strong> Maintains O(log n) height for optimal performance</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-md overflow-hidden p-6">
+        <h3 class="font-semibold text-purple-800 mb-3">Traversal Types</h3>
+        <ul class="space-y-2 text-sm text-gray-700">
+          <li class="flex items-start">
+            <span class="text-purple-500 mr-2">•</span>
+            <span><strong>In-order:</strong> Left → Root → Right (Results in sorted order)</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-purple-500 mr-2">•</span>
+            <span><strong>Pre-order:</strong> Root → Left → Right (Useful for copying trees)</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-purple-500 mr-2">•</span>
+            <span><strong>Post-order:</strong> Left → Right → Root (Useful for deletions)</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-purple-500 mr-2">•</span>
+            <span><strong>Level-order:</strong> Breadth-first level by level (Uses a queue)</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,247 @@
+<div class="min-h-screen bg-gray-50 py-12 px-4">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-gray-800 mb-2">Heap Visualizer</h1>
+      <p class="text-gray-600">Visualize Min-Heap and Max-Heap operations</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-md overflow-hidden p-6 mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Heap Type</label>
+          <select 
+            [(ngModel)]="heapType" 
+            class="w-full px-3 py-2 border border-gray-300 rounded-md cursor-pointer"
+            [disabled]="isWorking"
+            (change)="resetHeap()"
+          >
+            <option value="min">Min-Heap</option>
+            <option value="max">Max-Heap</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Animation Speed</label>
+          <input 
+            type="range" 
+            [(ngModel)]="animationSpeed"
+            min="100" 
+            max="1000" 
+            class="w-full cursor-pointer"
+            [disabled]="isWorking"
+          >
+          <span class="text-sm text-gray-600">{{animationSpeed}}ms delay</span>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Value</label>
+          <input 
+            type="number" 
+            [(ngModel)]="operationValue"
+            placeholder="Enter value"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md"
+            [disabled]="isWorking"
+          >
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <button
+          (click)="insertValue()"
+          class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition cursor-pointer"
+          [disabled]="isWorking || operationValue === null"
+        >
+          Insert
+        </button>
+        <button
+          (click)="extractRoot()"
+          class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded transition cursor-pointer"
+          [disabled]="isWorking || heap.length === 0"
+        >
+          Extract Root
+        </button>
+        <button
+          (click)="generateRandomHeap()"
+          class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded transition cursor-pointer"
+          [disabled]="isWorking"
+        >
+          Random Heap
+        </button>
+        <button
+          (click)="resetHeap()"
+          class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded transition cursor-pointer"
+          [disabled]="isWorking"
+        >
+          Reset
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <button
+          (click)="pauseOperation()"
+          class="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded transition cursor-pointer"
+          [disabled]="!isWorking || isPaused"
+        >
+          Pause
+        </button>
+        <button
+          (click)="resumeOperation()"
+          class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded transition cursor-pointer"
+          [disabled]="!isPaused"
+        >
+          Resume
+        </button>
+        <button
+          (click)="heapify()"
+          class="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded transition cursor-pointer"
+          [disabled]="isWorking || heap.length === 0"
+        >
+          Heapify
+        </button>
+        <button
+          (click)="buildHeap()"
+          class="bg-pink-600 hover:bg-pink-700 text-white py-2 px-4 rounded transition cursor-pointer"
+          [disabled]="isWorking"
+        >
+          Build Heap
+        </button>
+      </div>
+
+      <div class="mb-6 p-4 bg-blue-50 rounded-md">
+        <h3 class="font-semibold text-blue-800 mb-2">Current Operation</h3>
+        <p class="text-sm text-blue-700">{{operationText}}</p>
+        <div class="mt-2 flex flex-wrap gap-2">
+          <span 
+            *ngIf="currentStep"
+            class="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full"
+          >
+            Step: {{currentStep}}
+          </span>
+          <span 
+            *ngIf="swappedNodes.length > 0"
+            class="text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full"
+          >
+            Swapping: {{swappedNodes.join(' ↔ ')}}
+          </span>
+          <span 
+            *ngIf="comparedNodes.length > 0"
+            class="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full"
+          >
+            Comparing: {{comparedNodes.join(' ⇄ ')}}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Heap Visualization -->
+    <div class="bg-white rounded-xl shadow-md overflow-hidden p-6 mb-8">
+      <div class="heap-container relative flex flex-col items-center py-8 min-h-64">
+        <svg #heapSvg class="absolute w-full h-full">
+          <!-- Edges/Connections -->
+          <path 
+            *ngFor="let edge of edges"
+            [attr.d]="edge.path"
+            [class.stroke-gray-300]="edge.state === 'default'"
+            [class.stroke-blue-500]="edge.state === 'active'"
+            [class.stroke-green-500]="edge.state === 'visited'"
+            class="fill-none stroke-2"
+          />
+        </svg>
+
+        <div *ngFor="let level of heapLevels" class="flex justify-center space-x-8 mb-8 relative z-10">
+          <div 
+            *ngFor="let node of level.nodes" 
+            class="w-16 h-16 rounded-full flex items-center justify-center border-4 transition-all duration-300 relative"
+            [class.border-blue-500]="node.state === 'active'"
+            [class.border-green-500]="node.state === 'visited'"
+            [class.border-red-500]="node.state === 'processing'"
+            [class.border-yellow-500]="node.state === 'compared'"
+            [class.bg-blue-100]="node.state === 'active'"
+            [class.bg-green-100]="node.state === 'visited'"
+            [class.bg-red-100]="node.state === 'processing'"
+            [class.bg-yellow-100]="node.state === 'compared'"
+          >
+            <span class="font-bold text-lg">{{node.value}}</span>
+            <span class="absolute -top-6 text-xs text-gray-500">i:{{node.index}}</span>
+          </div>
+        </div>
+        <div *ngIf="heap.length === 0" class="text-gray-400 italic relative z-10">
+          Heap is empty
+        </div>
+      </div>
+    </div>
+
+    <!-- Array Representation -->
+    <div class="bg-white rounded-xl shadow-md overflow-hidden p-6 mb-8">
+      <h3 class="font-semibold text-gray-800 mb-4">Array Representation</h3>
+      <div class="flex flex-wrap gap-2">
+        <div 
+          *ngFor="let item of heap; let i = index"
+          class="w-12 h-12 rounded-lg flex items-center justify-center border-2 transition-all duration-300"
+          [class.border-blue-500]="highlightedIndices.includes(i)"
+          [class.border-gray-300]="!highlightedIndices.includes(i)"
+          [class.bg-blue-100]="highlightedIndices.includes(i)"
+          [class.bg-gray-100]="!highlightedIndices.includes(i)"
+        >
+          <span class="font-bold">{{item}}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Heap Properties -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div class="bg-white rounded-xl shadow-md overflow-hidden p-6">
+        <h3 class="font-semibold text-blue-800 mb-3">Heap Properties</h3>
+        <ul class="space-y-2 text-sm text-gray-700">
+          <li class="flex items-start">
+            <span class="text-blue-500 mr-2">•</span>
+            <span><strong>Complete Binary Tree:</strong> All levels are fully filled except possibly the last</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-blue-500 mr-2">•</span>
+            <span><strong>Heap Property:</strong> 
+              <span *ngIf="heapType === 'min'">Parent ≤ Children (Min-Heap)</span>
+              <span *ngIf="heapType === 'max'">Parent ≥ Children (Max-Heap)</span>
+            </span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-blue-500 mr-2">•</span>
+            <span><strong>Array Representation:</strong> For node at index i:
+              <ul class="ml-4 mt-1 space-y-1">
+                <li>Parent = floor((i-1)/2)</li>
+                <li>Left Child = 2i + 1</li>
+                <li>Right Child = 2i + 2</li>
+              </ul>
+            </span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-md overflow-hidden p-6">
+        <h3 class="font-semibold text-purple-800 mb-3">Heap Operations</h3>
+        <ul class="space-y-2 text-sm text-gray-700">
+          <li class="flex items-start">
+            <span class="text-purple-500 mr-2">•</span>
+            <span><strong>Insert:</strong> O(log n) - Add to end and bubble up</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-purple-500 mr-2">•</span>
+            <span><strong>Extract Root:</strong> O(log n) - Remove root, move last element to root, and bubble down</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-purple-500 mr-2">•</span>
+            <span><strong>Heapify:</strong> O(log n) - Fix a single violation</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-purple-500 mr-2">•</span>
+            <span><strong>Build Heap:</strong> O(n) - Convert array to heap</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-purple-500 mr-2">•</span>
+            <span><strong>Applications:</strong> Priority queues, heap sort, Dijkstra's algorithm</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

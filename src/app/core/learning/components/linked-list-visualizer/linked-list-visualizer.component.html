@@ -1,0 +1,187 @@
+<main class="min-h-screen bg-gray-50 py-12 px-4">
+  <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6">
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-gray-800 mb-2">Linked List Visualizer</h1>
+      <p class="text-gray-600">Visualize how linked list operations work</p>
+    </div>
+
+    <div class="space-y-6">
+      <!-- Controls -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">List Size</label>
+          <input 
+            type="range" 
+            [(ngModel)]="listSize"
+            min="3" 
+            max="15" 
+            class="w-full cursor-pointer"
+            [disabled]="isWorking"
+            (change)="generateNewList()"
+          >
+          <span class="text-sm text-gray-600">{{listSize}} nodes</span>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Animation Speed</label>
+          <input 
+            type="range" 
+            [(ngModel)]="animationSpeed"
+            min="100" 
+            max="1000" 
+            class="w-full cursor-pointer"
+            [disabled]="isWorking"
+          >
+          <span class="text-sm text-gray-600">{{animationSpeed}}ms delay</span>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Operation</label>
+          <select 
+            [(ngModel)]="selectedOperation" 
+            class="w-full px-3 py-2 border border-gray-300 rounded-md cursor-pointer"
+            [disabled]="isWorking"
+          >
+            <option value="traverse">Traverse</option>
+            <option value="insertStart">Insert at Start</option>
+            <option value="insertEnd">Insert at End</option>
+            <option value="insertAt">Insert at Position</option>
+            <option value="deleteStart">Delete from Start</option>
+            <option value="deleteEnd">Delete from End</option>
+            <option value="deleteAt">Delete at Position</option>
+            <option value="search">Search Value</option>
+            <option value="reverse">Reverse List</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Additional Inputs for Specific Operations -->
+      <div *ngIf="selectedOperation === 'insertAt' || selectedOperation === 'deleteAt'" class="grid grid-cols-1 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            {{selectedOperation === 'insertAt' ? 'Insert Position' : 'Delete Position'}}
+          </label>
+          <input 
+            type="number" 
+            [(ngModel)]="position"
+            min="0" 
+            [max]="list.length - 1"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md"
+            [disabled]="isWorking"
+          >
+        </div>
+      </div>
+
+      <div *ngIf="selectedOperation === 'insertStart' || selectedOperation === 'insertEnd' || selectedOperation === 'insertAt'" class="grid grid-cols-1 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Value to Insert</label>
+          <input 
+            type="number" 
+            [(ngModel)]="newValue"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md"
+            [disabled]="isWorking"
+          >
+        </div>
+      </div>
+
+      <div *ngIf="selectedOperation === 'search'" class="grid grid-cols-1 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Value to Search</label>
+          <input 
+            type="number" 
+            [(ngModel)]="searchValue"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md"
+            [disabled]="isWorking"
+          >
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <button
+          (click)="generateNewList()"
+          class="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded transition cursor-pointer"
+          [disabled]="isWorking"
+        >
+          Generate New List
+        </button>
+        <button
+          (click)="performOperation()"
+          class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition cursor-pointer"
+          [disabled]="isWorking"
+        >
+          Perform Operation
+        </button>
+        <button
+          (click)="pauseOperation()"
+          class="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded transition cursor-pointer"
+          [disabled]="!isWorking || isPaused"
+        >
+          Pause
+        </button>
+        <button
+          (click)="resumeOperation()"
+          class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded transition cursor-pointer"
+          [disabled]="!isPaused"
+        >
+          Resume
+        </button>
+      </div>
+
+      <!-- Visualization -->
+      <div class="mt-8">
+        <div class="flex flex-wrap items-center justify-center gap-4">
+          <div *ngFor="let node of list; let i = index" class="flex items-center">
+            <!-- Node Visualization -->
+            <div 
+              class="w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-300"
+              [ngClass]="{
+                'bg-blue-100 border-blue-500': node.state === 'default',
+                'bg-yellow-100 border-yellow-500': node.state === 'active',
+                'bg-green-100 border-green-500': node.state === 'completed',
+                'bg-red-100 border-red-500': node.state === 'error'
+              }"
+            >
+              {{node.value}}
+            </div>
+            
+            <!-- Arrow (except for last node) -->
+            <div *ngIf="i < list.length - 1" class="w-8 h-1 bg-gray-400 relative">
+              <div 
+                class="absolute right-0 top-1/2 w-2 h-2 border-t-2 border-r-2 border-gray-400 transform -translate-y-1/2 rotate-45"
+                *ngIf="!node.highlightNext"
+              ></div>
+              <div 
+                class="absolute right-0 top-1/2 w-2 h-2 border-t-2 border-r-2 border-red-500 transform -translate-y-1/2 rotate-45"
+                *ngIf="node.highlightNext"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Operation Info -->
+      <div class="mt-6 p-4 bg-blue-50 rounded-md">
+        <h3 class="font-semibold text-blue-800 mb-2">{{getOperationName()}}</h3>
+        <p class="text-sm text-blue-700">
+          {{getOperationDescription()}}
+        </p>
+        <div class="mt-2 text-xs text-blue-600">
+          <span class="font-medium">Current operation:</span> {{currentStep}}
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="grid grid-cols-2 gap-2 text-center mt-4">
+        <div class="bg-gray-100 p-2 rounded">
+          <div class="text-xs text-gray-500">List Size</div>
+          <div class="font-bold">{{list.length}}</div>
+        </div>
+        <div class="bg-gray-100 p-2 rounded">
+          <div class="text-xs text-gray-500">Steps Taken</div>
+          <div class="font-bold">{{steps}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
